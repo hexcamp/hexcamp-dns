@@ -1,4 +1,12 @@
 use crate::Options;
+use hickory_server::{
+    authority::MessageResponseBuilder,
+    proto::{
+        op::{Header, MessageType, OpCode, ResponseCode},
+        rr::{rdata::A, rdata::AAAA, rdata::TXT, LowerName, Name, RData, Record},
+    },
+    server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
+};
 use std::{
     borrow::Borrow,
     net::IpAddr,
@@ -9,12 +17,6 @@ use std::{
     },
 };
 use tracing::*;
-use trust_dns_server::{
-    authority::MessageResponseBuilder,
-    client::rr::{rdata::TXT, LowerName, Name, RData, Record},
-    proto::op::{Header, MessageType, OpCode, ResponseCode},
-    server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
-};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -67,8 +69,8 @@ impl Handler {
         let mut header = Header::response_from_request(request.header());
         header.set_authoritative(true);
         let rdata = match request.src().ip() {
-            IpAddr::V4(ipv4) => RData::A(ipv4),
-            IpAddr::V6(ipv6) => RData::AAAA(ipv6),
+            IpAddr::V4(ipv4) => RData::A(A(ipv4)),
+            IpAddr::V6(ipv6) => RData::AAAA(AAAA(ipv6)),
         };
         let records = vec![Record::from_rdata(request.query().name().into(), 60, rdata)];
         let response = builder.build(header, records.iter(), &[], &[], &[]);

@@ -4,7 +4,7 @@ use handler::Handler;
 use options::Options;
 use std::time::Duration;
 use tokio::net::{TcpListener, UdpSocket};
-use trust_dns_server::ServerFuture;
+use hickory_server::ServerFuture;
 
 mod handler;
 mod options;
