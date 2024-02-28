@@ -41,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v3.2.0
         with:
           context: .
-          file: Dockerfile-base
+          file: Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha

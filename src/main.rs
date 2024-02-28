@@ -1,10 +1,10 @@
 use anyhow::Result;
 use clap::Parser;
 use handler::Handler;
+use hickory_server::ServerFuture;
 use options::Options;
 use std::time::Duration;
 use tokio::net::{TcpListener, UdpSocket};
-use hickory_server::ServerFuture;
 
 mod handler;
 mod options;
