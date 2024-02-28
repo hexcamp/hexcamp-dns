@@ -12,6 +12,6 @@ pub struct Options {
     pub tcp: Vec<SocketAddr>,
 
     /// Domain name
-    #[clap(long, short, default_value = "dnsfun.dev", env = "DNSFUN_DOMAIN")]
+    #[clap(long, short, default_value = "dnsfun.hex.camp", env = "DNSFUN_DOMAIN")]
     pub domain: String,
 }

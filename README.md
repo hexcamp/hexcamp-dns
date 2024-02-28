@@ -94,7 +94,7 @@ pub struct Options {
     pub tcp: Vec<SocketAddr>,
 
     /// Domain name
-    #[clap(long, short, default_value = "dnsfun.dev", env = "DNSFUN_DOMAIN")]
+    #[clap(long, short, default_value = "dnsfun.hex.camp", env = "DNSFUN_DOMAIN")]
     pub domain: String,
 }
 ```
@@ -103,7 +103,7 @@ For explanation, the DNS protocol usually uses either UDP or TCP. Typically, UDP
 
 - `--udp <socket>` sets the sockets (address and port to listen on) for UDP packets. If nothing is specified, it defaults to `0.0.0.0:1053`.
 - `--tcp <socket>` sets the sockets to listen for TCP connections.
-- `--domain <domain>` sets the domain that we want to serve DNS requests for, it defaults to `dnsfun.dev`.
+- `--domain <domain>` sets the domain that we want to serve DNS requests for, it defaults to `dnsfun.hex.camp`.
 
 The [clap](https://docs.rs/clap) crate with the `derive` feature is very neat: we have a full declarative command-line parser in only 20 or so lines of Rust. This is all made possible because of the `#[derive(Parser)]` -- this turns a Rust struct into a definition for command-line options. Any member of the field becomes a flag. If you add a field that is `Option<String>`, it becomes an optional flag. If you have a field that is a `Vec<String>`, you can pass it multiple times.
 
@@ -222,7 +222,7 @@ Usage: dnsfun [OPTIONS]
 Options:
   -u, --udp <UDP>        UDP socket to listen on [env: DNSFUN_UDP=] [default: 0.0.0.0:1053]
   -t, --tcp <TCP>        TCP socket to listen on [env: DNSFUN_TCP=]
-  -d, --domain <DOMAIN>  Domain name [env: DNSFUN_DOMAIN=] [default: dnsfun.dev]
+  -d, --domain <DOMAIN>  Domain name [env: DNSFUN_DOMAIN=] [default: dnsfun.hex.camp]
   -h, --help             Print help information
 ```
 
@@ -253,9 +253,9 @@ So far, we can receive UDP DNS requests! But we obviously can't respond to them.
 
 Now, we have to implement our handle_request method to do something useful. There's a lot of funny things we could implement, but to keep this blog post somewhat short, there's three things I want to implement:
 
-- `myip.dnsfun.dev` should return the IP address of whomever is querying it.
-- `counter.dnsfun.dev` should return how many requests it has served so far.
-- `<name>.hello.dnsfun.dev` should return a greeting for the name.
+- `myip.dnsfun.hex.camp` should return the IP address of whomever is querying it.
+- `counter.dnsfun.hex.camp` should return how many requests it has served so far.
+- `<name>.hello.dnsfun.hex.camp` should return a greeting for the name.
 
 This part is perhaps the hardest part, the DNS protocol offers a lot of terminology and possibilities that might be confusing. If you feel confused at times, don't worry — so did I. 
 
@@ -269,11 +269,11 @@ pub struct Handler {
     pub counter: Arc<AtomicU64>,
     /// Domain to serve DNS responses for (requests for other domains are silently ignored).
     pub root_zone: LowerName,
-    /// Zone name for counter (counter.dnsfun.dev)
+    /// Zone name for counter (counter.dnsfun.hex.camp)
     pub counter_zone: LowerName,
-    /// Zone name for myip (myip.dnsfun.dev)
+    /// Zone name for myip (myip.dnsfun.hex.camp)
     pub myip_zone: LowerName,
-    /// Zone name for hello (hello.dnsfun.dev)
+    /// Zone name for hello (hello.dnsfun.hex.camp)
     pub hello_zone: LowerName,
 }
 ```
@@ -343,7 +343,7 @@ impl Handler {
 }
 ```
 
-What you can see here is that I'm making sure that we are serving a query (it wouldn't make sense for us to respond to anything else). I have separate handlers for the different zones (subdomains) that I want to service, and I just try to find a match. For example, a lookup for `myip.dnsfun.dev` would match the `myip_zone`, so that would call the `do_handle_request_myip` handler. A lookup for `unknown.dnsfun.dev` would match the `root_zone`, so it would call the `do_handle_request_default` handler. If we get a request for `google.com`, which doesn't even match the root zone (`dnsfun.dev`), when we don't even issue a response at all.
+What you can see here is that I'm making sure that we are serving a query (it wouldn't make sense for us to respond to anything else). I have separate handlers for the different zones (subdomains) that I want to service, and I just try to find a match. For example, a lookup for `myip.dnsfun.hex.camp` would match the `myip_zone`, so that would call the `do_handle_request_myip` handler. A lookup for `unknown.dnsfun.hex.camp` would match the `root_zone`, so it would call the `do_handle_request_default` handler. If we get a request for `google.com`, which doesn't even match the root zone (`dnsfun.hex.camp`), when we don't even issue a response at all.
 
 ```rust
 impl Handler {
@@ -421,7 +421,7 @@ impl Handler {
 }
 ```
 
-Finally, the `do_handle_request_hello` is a bit complicated, because we have to extract the name part from the query. For example, when you make a query for `patrick.hello.dnsfun.dev`, we return `hello, patrick`. So part of this complexity here is taking the query, splitting it into parts like `["patrick", "hello", "dnsfun", "dev"]`, and then chopping the last parts off, leaving `["patrick"]`, and then creating a string from that. That is what the iterators are doing here.
+Finally, the `do_handle_request_hello` is a bit complicated, because we have to extract the name part from the query. For example, when you make a query for `patrick.hello.dnsfun.hex.camp`, we return `hello, patrick`. So part of this complexity here is taking the query, splitting it into parts like `["patrick", "hello", "dnsfun", "dev"]`, and then chopping the last parts off, leaving `["patrick"]`, and then creating a string from that. That is what the iterators are doing here.
 
 To get some nice error messages, we also create our own error type. This is something that [thiserror](https://docs.rs/thiserror) makes very easy, we can just create an enum and give it some information on how the errors should be displayed, and it takes care of the rest.
 
@@ -444,15 +444,15 @@ pub enum Error {
 Again, we can run the server locally using `cargo run`. Running queries against it with `dig` shows that all of the features are working as expected:
 
 ```
-$ dig +short @127.0.0.1 -p 1053 patrick.hello.dnsfun.dev
+$ dig +short @127.0.0.1 -p 1053 patrick.hello.dnsfun.hex.camp
 "hello, patrick"
-$ dig +short @127.0.0.1 -p 1053 elon.musk.hello.dnsfun.dev
+$ dig +short @127.0.0.1 -p 1053 elon.musk.hello.dnsfun.hex.camp
 "hello, elon musk"
-$ dig +short @127.0.0.1 -p 1053 counter.dnsfun.dev
+$ dig +short @127.0.0.1 -p 1053 counter.dnsfun.hex.camp
 "3"
-$ dig +short @127.0.0.1 -p 1053 counter.dnsfun.dev
+$ dig +short @127.0.0.1 -p 1053 counter.dnsfun.hex.camp
 "4"
-$ dig +short @127.0.0.1 -p 1053 myip.dnsfun.dev
+$ dig +short @127.0.0.1 -p 1053 myip.dnsfun.hex.camp
 127.0.0.1
 ```
 
@@ -508,7 +508,7 @@ The configuration files need to be placed inside the `.github/workflows/` folder
 
 ## Deploying DNS-Fun
 
-I went ahead and purchased the domain `dnsfun.dev` from [my registrar](https://inwx.de) for 19.99€, and I purchased a VPS from my [cloud provider](https://hetzner.com) for about 4.50€ per month. I then logged in to that VPS and ran something like this:
+I went ahead and purchased the domain `dnsfun.hex.camp` from [my registrar](https://inwx.de) for 19.99€, and I purchased a VPS from my [cloud provider](https://hetzner.com) for about 4.50€ per month. I then logged in to that VPS and ran something like this:
 
 ```
 $ apt update
@@ -521,18 +521,18 @@ I had to do a few steps to get this VPS to be it's own nameserver -- I won't sho
 Now, you can make requests to it! You can either make requests through your normal DNS resolver, which meands that the responses are cached:
 
 ```
-$ dig +short counter.dnsfun.dev TXT
+$ dig +short counter.dnsfun.hex.camp TXT
 "2140997"
-$ dig +short mike.hello.dnsfun.dev TXT
+$ dig +short mike.hello.dnsfun.hex.camp TXT
 "hello, mike"
 ```
 
 Or, you can make request directly to it:
 
 ```
-$ dig +short @159.69.35.198 counter.dnsfun.dev TXT
+$ dig +short @159.69.35.198 counter.dnsfun.hex.camp TXT
 "2141001"
-$ dig +short @159.69.35.198 myip.dnsfun.dev
+$ dig +short @159.69.35.198 myip.dnsfun.hex.camp
 123.23.45.67
 ```
 
